@@ -1,0 +1,166 @@
+#!/bin/sh
+
+LOCKFILE="/var/lock/doghole.lock"
+IPT="iptables -t mangle"
+IPT_NAT="iptables -t nat"
+MARK=200
+
+. /lib/functions.sh
+config_load doghole
+
+start() {
+    if [ -f "$LOCKFILE" ]; then
+        echo "Could not lock $LOCKFILE: Resource temporarily unavailable."
+        exit 1
+    fi
+
+    local enable
+    config_get_bool enable globals enable
+
+    if [ "$enable" = 0 ]; then
+        exit 1
+    fi
+
+    local httpproxy
+    proxyargs=""
+    config_get_bool proxy globals proxy
+    config_get_bool httpproxy globals httpproxy
+    config_get proxyport globals proxyport
+
+    if [ "$httpproxy" = 1 ]; then
+        proxyargs="-m multiport --dport 80,443"
+    fi
+
+    if [ "$proxy" = 1 ]; then
+        $IPT_NAT -A doghole_mark -p tcp -m set ! --match-set CN dst -j REDIRECT --to-ports $proxyport
+
+
+        $IPT_NAT -A doghole_prerouting -d 10.0.0.0/8 -j RETURN
+        $IPT_NAT -A doghole_prerouting -d 100.64.0.0/10 -j RETURN
+        $IPT_NAT -A doghole_prerouting -d 172.16.0.0/12 -j RETURN
+        $IPT_NAT -A doghole_prerouting -d 192.168.0.0/16 -j RETURN
+    fi
+
+    $IPT -A doghole_prerouting -d 10.0.0.0/8 -j RETURN
+    $IPT -A doghole_prerouting -d 100.64.0.0/10 -j RETURN
+    $IPT -A doghole_prerouting -d 172.16.0.0/12 -j RETURN
+    $IPT -A doghole_prerouting -d 192.168.0.0/16 -j RETURN
+
+    config_foreach apply_policies policies
+    config_foreach apply_general doghole
+
+    touch $LOCKFILE
+}
+
+stop() {
+    $IPT --flush doghole_prerouting
+    $IPT --flush doghole_output
+    $IPT --flush doghole_mark
+    $IPT_NAT --flush doghole_prerouting
+    $IPT_NAT --flush doghole_output
+    $IPT_NAT --flush doghole_mark
+
+    rm -f $LOCKFILE
+}
+
+apply_policies() {
+    local enable
+    config_get_bool enable $1 enable
+
+    if [ "$enable" = 1 ]; then
+        local srchost
+        local policy
+        local args
+
+        config_get srchost $1 srchost
+        config_get policy $1 policy
+        config_get args $1 args
+
+        case "$policy" in
+          smart)
+            $IPT -A doghole_prerouting $args -s $srchost -m set --match-set rtbl dst -j MARK --set-mark $MARK
+            $IPT -A doghole_prerouting $args -s $srchost -m set --match-set doghole dst -j doghole_mark
+            if [ "$proxy" = 1 ]; then
+                $IPT_NAT -A doghole_prerouting $args -p tcp $proxyargs -s $srchost -m set --match-set rtbl dst -j REDIRECT --to-ports $proxyport
+                $IPT_NAT -A doghole_prerouting $args -p tcp $proxyargs -s $srchost -m set --match-set doghole dst -j doghole_mark
+            fi
+          ;;
+          international)
+            $IPT -A doghole_prerouting $args -s $srchost -m set ! --match-set CN dst -j MARK --set-mark $MARK
+            if [ "$proxy" = 1 ]; then
+                $IPT_NAT -A doghole_prerouting $args -p tcp $proxyargs -s $srchost -m set ! --match-set CN dst -j REDIRECT --to-ports $proxyport
+            fi
+          ;;
+          disabled)
+            $IPT -A doghole_prerouting $args -s $srchost -j RETURN
+            if [ "$proxy" = 1 ]; then
+                $IPT_NAT -A doghole_prerouting $args -p tcp $proxyargs -s $srchost -j RETURN
+            fi
+          ;;
+        esac
+    fi
+}
+
+apply_general() {
+    local policy
+    config_get policy $1 policy 
+
+    $IPT -A doghole_mark -m set ! --match-set CN dst -j MARK --set-mark $MARK
+
+    case "$policy" in
+      smart)
+        $IPT -A doghole_prerouting -m set --match-set rtbl dst -j MARK --set-mark $MARK
+        $IPT -A doghole_output -m set --match-set rtbl dst -j MARK --set-mark $MARK
+        $IPT -A doghole_prerouting -m set --match-set doghole dst -j doghole_mark
+        $IPT -A doghole_output -m set --match-set doghole dst -j doghole_mark
+        if [ "$proxy" = 1 ]; then
+            $IPT_NAT -A doghole_prerouting -p tcp $proxyargs -m set --match-set rtbl dst -j REDIRECT --to-ports $proxyport
+            $IPT_NAT -A doghole_output -p tcp $proxyargs -m set --match-set rtbl dst -j REDIRECT --to-ports $proxyport
+            $IPT_NAT -A doghole_prerouting -p tcp $proxyargs -m set --match-set doghole dst -j doghole_mark
+            $IPT_NAT -A doghole_output -p tcp $proxyargs -m set --match-set doghole dst -j doghole_mark
+        fi
+      ;;
+      international)
+        config_list_foreach $1 exclude apply_exclude
+
+        $IPT -A doghole_output -m set --match-set rtbl dst -j MARK --set-mark $MARK
+        $IPT -A doghole_prerouting -m set ! --match-set CN dst -j MARK --set-mark $MARK
+        if [ "$proxy" = 1 ]; then
+            $IPT_NAT -A doghole_output -p tcp $proxyargs -m set --match-set rtbl dst -j REDIRECT --to-ports $proxyport
+            $IPT_NAT -A doghole_prerouting -p tcp $proxyargs -m set ! --match-set CN dst -j REDIRECT --to-ports $proxyport
+        fi
+      ;;
+    esac
+}
+
+apply_exclude() {
+    local dest="$1"
+    
+    $IPT -A doghole_prerouting -d $dest -j RETURN
+    $IPT -A doghole_output -d $dest -j RETURN
+    if [ "$proxy" = 1 ]; then
+        $IPT_NAT -A doghole_prerouting -p tcp $proxyargs -d $dest -j RETURN
+        $IPT_NAT -A doghole_output -p tcp $proxyargs -d $dest -j RETURN
+    fi
+}
+
+case "$1" in
+  upgrade)
+    opkg update
+    opkg upgrade ChinaDNS luci-app-chinadns shadowvpn luci-proto-shadowvpn doghole
+  ;;
+  start)
+    start
+  ;;
+  stop)
+    stop
+  ;;
+  restart)
+    stop
+    start
+  ;;
+  *)
+    echo "Usage: $0 (start|stop|restart|upgrade|usage)"
+  ;;
+esac
+exit 0

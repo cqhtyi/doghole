@@ -1,0 +1,24 @@
+--[[
+the LuCI model for doghole
+]]--
+
+module("luci.controller.doghole", package.seeall)
+
+function index()
+        if not nixio.fs.access("/etc/config/doghole") then
+                return
+        end
+
+        entry({"admin", "services", "doghole"},
+                alias("admin", "services", "doghole", "globals"),
+                _("Doghole"), 70)
+
+        entry({"admin", "services", "doghole", "globals"},
+                cbi("doghole/globals"), _("Global Settings"), 10).leaf = true
+
+        entry({"admin", "services", "doghole", "policies"},
+                cbi("doghole/policies"), _("Policy Routing"), 10).leaf = true
+
+        entry({"admin", "services", "doghole", "dnsmasq"},
+                cbi("doghole/dnsmasq"), _("Custom Dnsmasq"), 20).leaf = true
+end

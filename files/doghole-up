@@ -1,0 +1,33 @@
+#!/bin/sh
+
+IFACE="$1"
+IFNAME="svpn-doghole"
+IPADDR="$2"
+GATEWAY="$4"
+TABLE_ID="doghole"
+PREF="100"
+FWMARK="200"
+
+if [ "$IFACE" != "$IFNAME" ]; then
+	exit 0
+fi
+
+touch /var/lock/vpnd-interface.lock
+logger "$IFNAME policy routing starting..."
+
+iptables -t mangle -I PREROUTING -d $IPADDR -j RETURN
+
+BATCH="route replace default via $GATEWAY src $IPADDR dev $IFACE table $TABLE_ID\n"
+BATCH="$BATCH""rule add fwmark $FWMARK lookup $TABLE_ID pref $PREF\n"
+BATCH="$BATCH""route flush cache"
+
+ipset create doghole iphash -exist
+ipset restore -exist < /etc/doghole/doghole.rtbl
+
+MSG=`echo -e $BATCH | ip -batch - 2>&1`
+
+if [ "$?" != "0" ]; then
+  logger "An error occurred while starting policy route: $MSG"
+else
+  logger "$IFNAME policy routing is ready."
+fi

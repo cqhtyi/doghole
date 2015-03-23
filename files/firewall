@@ -1,0 +1,18 @@
+IPT="iptables -t mangle"
+IPT_NAT="iptables -t nat"
+ipset create rtbl nethash -exist
+ipset create doghole iphash -exist
+ipset restore -exist < /etc/doghole/CN.rtbl
+$IPT -N doghole_output
+$IPT -N doghole_prerouting
+$IPT -N doghole_mark
+$IPT -I OUTPUT -m mark --mark 200 -j RETURN
+$IPT -I PREROUTING -m mark --mark 200 -j RETURN
+$IPT -I OUTPUT -j doghole_output
+$IPT -I PREROUTING -j doghole_prerouting
+$IPT_NAT -N doghole_output
+$IPT_NAT -N doghole_prerouting
+$IPT_NAT -N doghole_mark
+$IPT_NAT -I OUTPUT -j doghole_output
+$IPT_NAT -I PREROUTING -j doghole_prerouting
+/bin/doghole restart

@@ -1,0 +1,49 @@
+--[[
+the LuCI model for doghole
+]]--
+
+local m, s, o
+
+m = Map("doghole", translate("Doghole - Global Settings"), translate("Science networking solution based on ShadowVPN."))
+
+s = m:section(TypedSection, "globals", nil)
+s.anonymous = true
+
+s:tab("general", translate("General Settings"))
+s:tab("tp", translate("Transparent Proxy"))
+
+o = s:taboption("general", Flag, "enable", translate("Enable"))
+o.default = 1
+o.rmempty = false
+
+if luci.sys.call("lsmod | grep -q xt_REDIRECT") == 0 then
+    o = s:taboption("tp", Flag, "proxy", translate("Use transparent proxy"))
+    o.default = 0
+    o.rmempty = false
+    
+    o = s:taboption("tp", Flag, "httpproxy", translate("Only for HTTP(S)"), translate("Only for TCP 80 and 443 ports."))
+    o:depends("proxy", 1)
+    o.default = 0
+    o.rmempty = false
+    
+    o = s:taboption("tp", Value, "proxyport", translate("Proxy's port"),
+            translate("The port of transparent proxy."))
+    o:depends("proxy", 1)
+    o.default = 1080
+    o.placeholder = o.default
+    o.datatype = "port"
+else
+    local p_install = s:taboption("tp", Button, "_proxy")
+    p_install.title = translate("Kernel module is not installed")
+    p_install.inputtitle = translate("Install package iptables-mod-nat-extra")
+    p_install.inputstyle = "apply"
+    
+    function p_install.write()
+        return luci.http.redirect(
+            luci.dispatcher.build_url("admin/system/packages") ..
+            "?submit=1&install=iptables-mod-nat-extra"
+            )
+    end
+end
+
+return m

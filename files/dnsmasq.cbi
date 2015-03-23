@@ -1,0 +1,26 @@
+--[[
+the LuCI model for doghole
+]]--
+
+local fs = require "nixio.fs"
+
+local f = SimpleForm("doghole",
+	translate("Doghole - Custom Dnsmasq"),
+	translate("Custom Dnsmasq allow you to add ipset rules and more.<br /><span style=\"color:red;font-weight:bold\">WARNING: Incorrect configuration will cause dnsmasq does not work!!!</span>"))
+
+local o = f:field(Value, "_custom")
+
+o.template = "cbi/tvalue"
+o.rows = 20
+
+function o.cfgvalue(self, section)
+	return fs.readfile("/etc/doghole/dnsmasq.d/custom.conf")
+end
+
+function o.write(self, section, value)
+	value = value:gsub("\r\n?", "\n")
+	fs.writefile("/etc/doghole/dnsmasq.d/custom.conf", value)
+	luci.sys.call("/etc/init.d/dnsmasq reload")
+end
+
+return f

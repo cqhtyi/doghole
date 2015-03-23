@@ -1,0 +1,21 @@
+#!/bin/sh
+
+IFACE="$1"
+IPADDR="$2"
+IFNAME="svpn-doghole"
+TABLE_ID="doghole"
+PREF="100"
+FWMARK="200"
+
+if [ "$IFACE" != "$IFNAME" ]; then
+	exit 0
+fi
+
+logger "$IFNAME policy routing stoping..."
+
+iptables -t mangle -D PREROUTING -d $IPADDR -j RETURN
+ip rule del fwmark $FWMARK lookup $TABLE_ID pref $PREF
+ipset flush rtbl
+
+rm -f /var/lock/doghole-interface.lock
+logger "$IFNAME policy routing is down."

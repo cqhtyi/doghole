@@ -1,0 +1,80 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Doghole"
+msgstr "狗洞"
+
+msgid "Global Settings"
+msgstr "全局设置"
+
+msgid "Policy Routing"
+msgstr "策略路由"
+
+msgid "Custom Dnsmasq"
+msgstr "自定义 Dnsmasq"
+
+msgid "Doghole - Global Settings"
+msgstr "Doghole - 全局设置"
+
+msgid "Science networking solution based on ShadowVPN."
+msgstr "基于 ShadowVPN 的科学上网解决方案。"
+
+msgid "Use transparent proxy"
+msgstr "使用透明代理"
+
+msgid "Proxy's port"
+msgstr "代理端口"
+
+msgid "The port of transparent proxy."
+msgstr "透明代理的端口"
+
+msgid "Doghole - Policy Routing"
+msgstr "Doghole - 策略路由"
+
+msgid "You can control policy routing rules on here."
+msgstr "您可以在这里控制策略路由规则。"
+
+msgid "Default Policy"
+msgstr "默认策略"
+
+msgid "Smart"
+msgstr "智能"
+
+msgid "International"
+msgstr "国际"
+
+msgid "Policies"
+msgstr "规则"
+
+msgid "Source host"
+msgstr "源主机"
+
+msgid "Comment"
+msgstr "备注"
+
+msgid "Doghole - Custom Dnsmasq"
+msgstr "Doghole - 自定义 Dnsmasq"
+
+msgid "Custom Dnsmasq allow you to add ipset rules and more.<br /><span style=\"color:red;font-weight:bold\">WARNING: Incorrect configuration will cause dnsmasq does not work!!!</span>"
+msgstr "自定义 Dnsmasq 允许您添加额外的 ipset 规则。<br /><span style=\"color:red;font-weight:bold\">警告：错误的配置将导致 Dnsmasq 无法启动！！！</span>"
+
+msgid "Transparent Proxy"
+msgstr "透明代理"
+
+msgid "Only for HTTP(S)"
+msgstr "仅用于 HTTP(S)"
+
+msgid "Only for TCP 80 and 443 ports."
+msgstr "仅作用于 TCP 80 和 443 端口。"
+
+msgid "Exclude Address"
+msgstr "排除地址"
+
+msgid "Excluded destination on the policy."
+msgstr "在这个策略上被排除的目标地址。"
+
+msgid "Kernel module is not installed"
+msgstr "缺少内核模块"
+
+msgid "Install package iptables-mod-nat-extra"
+msgstr "安装 iptables-mod-nat-extra 软件包"

@@ -1,0 +1,47 @@
+#!/bin/sh
+
+uci -q batch <<-EOF >/dev/null
+    delete ucitrack.@doghole[-1]
+    add ucitrack doghole
+    set ucitrack.@doghole[-1].exec="/bin/doghole restart"
+    commit ucitrack
+EOF
+
+/etc/init.d/chinadns enable
+if ! grep -q ^200[[:space:]]doghole$ /etc/iproute2/rt_tables; then
+    echo -e "200\tdoghole" >> /etc/iproute2/rt_tables
+fi
+if ! grep -q conf-dir=/etc/doghole/dnsmasq.d /etc/dnsmasq.conf; then
+    echo "conf-dir=/etc/doghole/dnsmasq.d" >> /etc/dnsmasq.conf
+fi
+if ! uci show luci | grep -q ^luci.doghole; then
+    uci -q batch <<-EOF >/dev/null
+        set luci.doghole=command
+        set luci.doghole.name=vpnd
+        set luci.doghole.command="/bin/vpnd upgrade"
+        commit luci
+EOF
+fi
+if ! uci show network | grep -q network.doghole; then
+    uci -q batch <<-EOF >/dev/null
+        set network.doghole=interface
+        set network.doghole.proto=svpn
+        set network.doghole.defaultroute=0
+EOF
+    [ -n "$INCLUDED" ] || uci set network.doghole.auto=0
+    if ! uci get firewall.@zone[1].network | grep -q doghole; then
+        WANZONE=`uci get firewall.@zone[1].network`
+        uci set firewall.@zone[1].network="$WANZONE doghole"
+    fi
+    uci commit network
+fi
+if ! uci show firewall | grep -q /etc/doghole/firewall; then
+    uci -q batch <<-EOF >/dev/null
+        set firewall.doghole=include
+        set firewall.doghole.path=/etc/doghole/firewall
+EOF
+fi
+uci commit firewall
+
+rm -rf /tmp/luci-modulecache /tmp/luci-indexcache
+[ -n "$INCLUDED" ] || exit 0
