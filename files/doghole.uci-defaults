@@ -17,8 +17,8 @@ fi
 if ! uci show luci | grep -q ^luci.doghole; then
     uci -q batch <<-EOF >/dev/null
         set luci.doghole=command
-        set luci.doghole.name=vpnd
-        set luci.doghole.command="/bin/vpnd upgrade"
+        set luci.doghole.name=doghole
+        set luci.doghole.command="/bin/doghole upgrade"
         commit luci
 EOF
 fi
