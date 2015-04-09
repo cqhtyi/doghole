@@ -43,5 +43,19 @@ EOF
 fi
 uci commit firewall
 
+uci -q batch <<-EOF >/dev/null
+    set dhcp.@dnsmasq[0].noresolv=1
+    delete dhcp.@dnsmasq[0].server
+    add_list dhcp.@dnsmasq[0].server=127.0.0.1#5353
+    commit dhcp
+    set chinadns.@chinadns[0].enable=1
+    set chinadns.@chinadns[0].port=5353
+    set chinadns.@chinadns[0].bidirectional=0
+    set chinadns.@chinadns[0].compression=0
+    set chinadns.@chinadns[0].result_delay=0
+    set chinadns.@chinadns[0].server=114.114.114.114,223.5.5.5,208.67.220.220:5353,208.67.222.222:443
+    commit chinadns
+EOF
+
 rm -rf /tmp/luci-modulecache /tmp/luci-indexcache
 [ -n "$INCLUDED" ] || exit 0

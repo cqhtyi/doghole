@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=doghole
-PKG_VERSION:=0.1
+PKG_VERSION:=0.2
 PKG_RELEASE:=1
 PKG_MAINTAINER:=Jason Tse <jasontsecode@gmail.com>
 PKG_LICENSE:=GPLv3
