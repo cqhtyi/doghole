@@ -14,6 +14,7 @@ define Package/doghole
    CATEGORY:=Network
    SUBMENU:=Routing and Redirection
    DEPENDS:=+dnsmasq-full +ip +ipset +iptables +iptables-mod-ipopt +shadowvpn +luci-proto-shadowvpn +luci-app-commands +ChinaDNS +luci-app-chinadns
+   CONFLICT:=vpnd
    TITLE:=Science networking solution based on ShadowVPN
    MAINTAINER:=Jason Tse <jasontsecode@gmail.com>
    PKGARCH:=all
