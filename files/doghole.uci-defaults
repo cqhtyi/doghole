@@ -46,7 +46,7 @@ uci commit firewall
 uci -q batch <<-EOF >/dev/null
     set dhcp.@dnsmasq[0].noresolv=1
     delete dhcp.@dnsmasq[0].server
-    add_list dhcp.@dnsmasq[0].server=127.0.0.1#5353
+    add_list dhcp.@dnsmasq[0].server="127.0.0.1#5353"
     commit dhcp
     set chinadns.@chinadns[0].enable=1
     set chinadns.@chinadns[0].port=5353
