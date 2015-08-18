@@ -39,6 +39,7 @@ define Package/doghole/install
 	$(INSTALL_CONF) ./files/firewall $(1)/etc/doghole/
 	$(INSTALL_CONF) ./files/ipset.conf $(1)/etc/doghole/dnsmasq.d/
 	$(INSTALL_CONF) ./files/custom.conf $(1)/etc/doghole/dnsmasq.d/
+	$(INSTALL_CONF) ./files/cdn.conf $(1)/etc/doghole/dnsmasq.d/
 	$(INSTALL_BIN) ./files/doghole-up $(1)/etc/shadowvpn/up.d/
 	$(INSTALL_BIN) ./files/doghole-down $(1)/etc/shadowvpn/down.d/
 	$(INSTALL_BIN) ./files/doghole $(1)/bin/
