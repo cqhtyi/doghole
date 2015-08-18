@@ -20,7 +20,7 @@ logger "$IFNAME policy routing starting..."
 iptables -t mangle -I PREROUTING -d $IPADDR -j RETURN
 
 BATCH="route replace default via $GATEWAY src $IPADDR dev $IFACE table $TABLE_ID\n"
-BATCH="route replace local 0.0.0.0/0 dev lo table $TPROXY_TABLE\n"
+BATCH="$BATCH""route replace local 0.0.0.0/0 dev lo table $TPROXY_TABLE\n"
 BATCH="$BATCH""rule add fwmark $FWMARK lookup $TABLE_ID pref $PREF\n"
 BATCH="$BATCH""rule add fwmark $TPROXY_FWMARK lookup $TPROXY_TABLE pref $PREF\n"
 BATCH="$BATCH""route flush cache"
