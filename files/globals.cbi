@@ -41,6 +41,7 @@ if luci.sys.call("lsmod | grep -q xt_REDIRECT") == 0 then
                 luci.dispatcher.build_url("admin/system/packages") ..
                 "?submit=1&install=iptables-mod-tproxy"
                 )
+        end
     end
     
     o = s:taboption("tp", Value, "proxyport", translate("Proxy's port"),
