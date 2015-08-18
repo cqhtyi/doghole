@@ -4,8 +4,10 @@ IFACE="$1"
 IPADDR="$2"
 IFNAME="svpn-doghole"
 TABLE_ID="doghole"
+TPROXY_TABLE="dogholetproxy"
 PREF="100"
-FWMARK="200"
+FWMARK="0xc8/0xc8"
+TPROXY_FWMARK="0xc9/0xc8"
 
 if [ "$IFACE" != "$IFNAME" ]; then
 	exit 0
@@ -15,6 +17,8 @@ logger "$IFNAME policy routing stoping..."
 
 iptables -t mangle -D PREROUTING -d $IPADDR -j RETURN
 ip rule del fwmark $FWMARK lookup $TABLE_ID pref $PREF
+ip rule del fwmark $TPROXY_FWMARK lookup $TPROXY_TABLE pref $PREF
+ip route flush $TPROXY_TABLE
 ipset flush rtbl
 
 rm -f /var/lock/doghole-interface.lock

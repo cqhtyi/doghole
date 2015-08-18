@@ -10,6 +10,7 @@ EOF
 /etc/init.d/chinadns enable
 if ! grep -q ^200[[:space:]]doghole$ /etc/iproute2/rt_tables; then
     echo -e "200\tdoghole" >> /etc/iproute2/rt_tables
+    echo -e "201\tdogholetproxy" >> /etc/iproute2/rt_tables
 fi
 if ! grep -q conf-dir=/etc/doghole/dnsmasq.d /etc/dnsmasq.conf; then
     echo "conf-dir=/etc/doghole/dnsmasq.d" >> /etc/dnsmasq.conf

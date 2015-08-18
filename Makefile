@@ -80,6 +80,7 @@ define Package/doghole/postrm
 #!/bin/sh
 [ ! -z "$${IPKG_INSTROOT}" ] && exit 0
 sed -i '/^200\tdoghole/d' /etc/iproute2/rt_tables
+sed -i '/^201\tdogholetproxy/d' /etc/iproute2/rt_tables
 sed -i '/^conf-dir=\/etc\/doghole\/dnsmasq.d/d' /etc/dnsmasq.conf
 /etc/init.d/dnsmasq restart
 uci -q batch <<-EOF >/dev/null

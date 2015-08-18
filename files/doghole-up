@@ -5,8 +5,10 @@ IFNAME="svpn-doghole"
 IPADDR="$2"
 GATEWAY="$4"
 TABLE_ID="doghole"
+TPROXY_TABLE="dogholetproxy"
 PREF="100"
-FWMARK="200"
+FWMARK="0xc8/0xc8"
+TPROXY_FWMARK="0xc9/0xc8"
 
 if [ "$IFACE" != "$IFNAME" ]; then
 	exit 0
@@ -18,7 +20,9 @@ logger "$IFNAME policy routing starting..."
 iptables -t mangle -I PREROUTING -d $IPADDR -j RETURN
 
 BATCH="route replace default via $GATEWAY src $IPADDR dev $IFACE table $TABLE_ID\n"
+BATCH="route replace local 0.0.0.0/0 dev lo table $TPROXY_TABLE\n"
 BATCH="$BATCH""rule add fwmark $FWMARK lookup $TABLE_ID pref $PREF\n"
+BATCH="$BATCH""rule add fwmark $TPROXY_FWMARK lookup $TPROXY_TABLE pref $PREF\n"
 BATCH="$BATCH""route flush cache"
 
 ipset create doghole iphash -exist

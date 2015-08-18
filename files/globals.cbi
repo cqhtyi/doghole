@@ -25,6 +25,23 @@ if luci.sys.call("lsmod | grep -q xt_REDIRECT") == 0 then
     o:depends("proxy", 1)
     o.default = 0
     o.rmempty = false
+
+    if luci.sys.call("lsmod | grep -q xt_TPROXY") == 0 then
+        o = s:taboption("tp", Flag, "tproxy", translate("UDP proxy"))
+        o.default = 0
+        o.rmempty = false
+    else
+        local p_install = s:taboption("tp", Button, "_proxy")
+        p_install.title = translate("Install UDP proxy")
+        p_install.inputtitle = translate("Install package iptables-mod-tproxy to support UDP proxy.")
+        p_install.inputstyle = "apply"
+    
+        function p_install.write()
+            return luci.http.redirect(
+                luci.dispatcher.build_url("admin/system/packages") ..
+                "?submit=1&install=iptables-mod-tproxy"
+                )
+    end
     
     o = s:taboption("tp", Value, "proxyport", translate("Proxy's port"),
             translate("The port of transparent proxy."))
