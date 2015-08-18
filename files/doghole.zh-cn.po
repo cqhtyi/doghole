@@ -67,6 +67,15 @@ msgstr "仅用于 HTTP(S)"
 msgid "Only for TCP 80 and 443 ports."
 msgstr "仅作用于 TCP 80 和 443 端口。"
 
+msgid "UDP proxy"
+msgstr "UDP代理"
+
+msgid "Install UDP proxy"
+msgstr "安装UDP代理"
+
+msgid "Install package iptables-mod-tproxy to support UDP proxy."
+msgstr "安装 iptables-mod-tproxy 软件包来支持UDP代理。"
+
 msgid "Exclude Address"
 msgstr "排除地址"
 
