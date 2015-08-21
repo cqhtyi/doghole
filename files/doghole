@@ -44,7 +44,7 @@ start() {
 
         if [ "$tproxy" = 1 ]; then
             $IPT -A doghole_mark -p udp -m set ! --match-set CN dst -j TPROXY --on-port $proxyport --tproxy-mark $TPROXY_MARK
-            $IPT -A doghole_mark -p udp -m set ! --match-set CN dst -j RETURN
+            $IPT -A doghole_mark -p udp -j RETURN
         fi
     fi
 
